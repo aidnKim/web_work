@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>/user/loginform.jsp</title>
+<title>/user/login-form.jsp</title>
 </head>
 <body>
 	<div class="container">
