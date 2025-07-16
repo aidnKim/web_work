@@ -18,10 +18,10 @@
 </head>
 <body>
 	<div class="container">
-		<h1>로그인 양식</h1>
-		<!-- 로그인 성공 후에 이동할 url 정보를 추가로 form 전송되도록 한다 -->
-		<input type="hidden" name="url" value="<%=url %>"/>
+		<h1>로그인 양식</h1>			
 		<form action="login.jsp" method="post">
+			<!-- 로그인 성공 후에 이동할 url 정보를 추가로 form 전송되도록 한다 -->	
+			<input type="hidden" name="url" value="<%=url %>"/>
 			<div>
 				<label for="userName">아이디</label>
 				<input type="text" name="userName" id="userName" />
