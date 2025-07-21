@@ -1,5 +1,5 @@
-<%@page import="java.net.URLEncoder"%>
 <%@page import="org.mindrot.jbcrypt.BCrypt"%>
+<%@page import="java.net.URLEncoder"%>
 <%@page import="test.dao.UserDao"%>
 <%@page import="test.dto.UserDto"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
