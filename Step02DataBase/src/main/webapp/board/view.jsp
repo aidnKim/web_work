@@ -8,8 +8,12 @@
 	int num=Integer.parseInt(request.getParameter("num"));
 	//DB 에서 해당글의 자세한 정보를 얻어낸다.
 	BoardDto dto=BoardDao.getInstance().getByNum(num);
-	//로그인된 userName(null 일 가능성 있음)
+	//로그인된 userName (null 일 가능성 있음)
 	String userName=(String)session.getAttribute("userName");
+	//만일 본인 글 자세히 보기가 아니면 조회수를 1 증가 시킨다
+	if(!dto.getWriter().equals(userName)){
+		BoardDao.getInstance().addViewCount(num);
+	}
 %>
 <!DOCTYPE html>
 <html>
@@ -34,8 +38,8 @@
 		<h1>게시글 상세보기</h1>
 		<table class="table table-striped">
 			<colgroup>
-				<col class="col-2"/> <!-- 1/12 차지 -->
-				<col class="col"/> <!-- 나머지 차지 -->
+				<col class="col-2"/>
+				<col class="col"/>
 			</colgroup>
 			<tr>
 				<th>글번호</th>
@@ -43,7 +47,15 @@
 			</tr>
 			<tr>
 				<th>작성자</th>
-				<td><%=dto.getWriter() %></td>
+				<td>
+					<%if(dto.getProfileImage() == null){ %>
+						<i style="font-size:100px;" class="bi bi-person-circle"></i>
+					<%}else{ %>
+						<img src="${pageContext.request.contextPath }/upload/<%=dto.getProfileImage() %>" 
+							style="width:100px;height:100px;border-radius:50%;"/>
+					<%} %>
+					<%=dto.getWriter() %>
+				</td>
 			</tr>
 			<tr>
 				<th>제목</th>
@@ -53,11 +65,14 @@
 				<th>조회수</th>
 				<td><%=dto.getViewCount() %></td>
 			</tr>
+			<tr>
+				<th>작성일</th>
+				<td><%=dto.getCreatedAt() %></td>
+			</tr>
 		</table>
 		<%--
-			클라이언트가 작성한 글 제목이나 내용을 그대로 클라이언트에게 출력하는 것은
-			javascript 주입 공격을 받을 수 있다
-			따라서 해당 문자열은 escape 해서 출력하는 것이 안전하다
+			클라이언트가 작성한 글 제목이나 내용을 그대로 클라이언트에게 출력하는것은 javascript 주입 공격을 받을수 있다
+			따라서 해당 문자열은 escape 해서 출력하는것이 안전하다 
 		 --%>	
 		<div><pre><%=StringEscapeUtils.escapeHtml4(dto.getContent()) %></pre></div>
 		<div class="card mt-4">
@@ -70,11 +85,11 @@
 		</div>
 		<%if(dto.getWriter().equals(userName)){ %>
 			<div class="text-end pt-2">
-				<a class="btn btn-warning btn-sm" href="edit.jsp?num=<%=dto.getNum() %>">Edit</a>
-				<a class="btn btn-danger btn-sm" href="delete.jsp?num=<%=dto.getNum() %>">Delete</a>
+				<a class="btn btn-warning btn-sm" href="edit.jsp?num=<%=dto.getNum()%>">Edit</a>
+				<a class="btn btn-danger btn-sm" href="delete.jsp?num=<%=dto.getNum()%>">Delete</a>
 			</div>
 		<%} %>		
-	</div>
+	</div><!-- .container -->
 </body>
 </html>
 

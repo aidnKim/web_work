@@ -7,7 +7,13 @@ public class BoardDto {
 	private String content;
 	private int viewCount;
 	private String createdAt;
+	//페이징 처리를 위한 필드
+	private int startRowNum;
+	private int endRowNum;
+	//프로필 이미지 출력을 위한 필드
+	private String ProfileImage;
 	
+	//setter, getter
 	public int getNum() {
 		return num;
 	}
@@ -44,6 +50,25 @@ public class BoardDto {
 	public void setCreatedAt(String createdAt) {
 		this.createdAt = createdAt;
 	}
+	public int getStartRowNum() {
+		return startRowNum;
+	}
+	public void setStartRowNum(int startRowNum) {
+		this.startRowNum = startRowNum;
+	}
+	public int getEndRowNum() {
+		return endRowNum;
+	}
+	public void setEndRowNum(int endRowNum) {
+		this.endRowNum = endRowNum;
+	}
+	public String getProfileImage() {
+		return ProfileImage;
+	}
+	public void setProfileImage(String profileImage) {
+		ProfileImage = profileImage;
+	}
+	
 	
 	
 }
