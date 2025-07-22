@@ -12,6 +12,9 @@ public class BoardDto {
 	private int endRowNum;
 	//프로필 이미지 출력을 위한 필드
 	private String ProfileImage;
+	//이전글, 다음글 처리를 위한 필드
+	private int prevNum;
+	private int nextNum;
 	
 	//setter, getter
 	public int getNum() {
@@ -68,7 +71,17 @@ public class BoardDto {
 	public void setProfileImage(String profileImage) {
 		ProfileImage = profileImage;
 	}
-	
-	
+	public int getPrevNum() {
+		return prevNum;
+	}
+	public void setPrevNum(int prevNum) {
+		this.prevNum = prevNum;
+	}
+	public int getNextNum() {
+		return nextNum;
+	}
+	public void setNextNum(int nextNum) {
+		this.nextNum = nextNum;
+	}
 	
 }
