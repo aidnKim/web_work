@@ -9,7 +9,7 @@
 	String keyword=request.getParameter("keyword");
 	//System.out.println(keyword); // null or "" 또는 "검색어..." 
 	if(keyword==null){
-		keyword="";
+		keyword=""; // 이렇게 써주면 StringUtils.isEmpty() 가 필요 없음
 	}
 	
 	//기본 페이지 번호는 1 로 설정하고 

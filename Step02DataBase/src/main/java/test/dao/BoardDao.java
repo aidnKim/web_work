@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import test.dto.BoardDto;
+import test.dto.CommentDto;
 import test.util.DbcpBean;
 
 public class BoardDao {

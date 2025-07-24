@@ -1,3 +1,6 @@
+<%@page import="test.dto.CommentDto"%>
+<%@page import="java.util.List"%>
+<%@page import="test.dao.CommentDao"%>
 <%@page import="org.apache.commons.text.StringEscapeUtils"%>
 <%@page import="test.dao.BoardDao"%>
 <%@page import="test.dto.BoardDto"%>
@@ -14,6 +17,11 @@
 	if(!dto.getWriter().equals(userName)){
 		BoardDao.getInstance().addViewCount(num);
 	}
+	//댓글 목록을 DB 에서 읽어오기
+	List<CommentDto> commentList=CommentDao.getInstance().selectList(num);
+	//로그인 했는지 여부를 알아내기
+	boolean isLogin = userName == null ? false : true;
+	
 %>
 <!DOCTYPE html>
 <html>
@@ -94,8 +102,112 @@
 				<a class="btn btn-warning btn-sm" href="edit.jsp?num=<%=dto.getNum()%>">Edit</a>
 				<a class="btn btn-danger btn-sm" href="delete.jsp?num=<%=dto.getNum()%>">Delete</a>
 			</div>
-		<%} %>		
+		<%} %>
+		
+		<div class="card my-3">
+		  <div class="card-header bg-primary text-white">
+		    댓글을 입력해 주세요
+		  </div>
+		  <div class="card-body">
+		    <!-- 원글의 댓글을 작성할 폼 -->
+		    <form action="save-comment.jsp" method="post">
+		      <!-- 숨겨진 입력값 -->
+		      <input type="hidden" name="parentNum" value="<%=dto.getNum() %>"/>
+		      <input type="hidden" name="targetWriter" value="<%=dto.getWriter() %>" />
+		
+		      <div class="mb-3">
+		        <label for="commentContent" class="form-label">댓글 내용</label>
+		        <textarea id="commentContent" name="content" rows="5" class="form-control" placeholder="댓글을 입력하세요"></textarea>
+		      </div>
+		
+		      <button type="submit" class="btn btn-success">등록</button>
+		    </form>
+		  </div>
+		</div>
+		<!-- 댓글 목록을 출력하기 -->
+		<div class="comments">
+			<%for(CommentDto tmp:commentList){ %>
+				 <div class="card mb-3">
+		            <div class="card-body d-flex flex-column flex-sm-row">
+		            	<%if(tmp.getProfileImage() == null){ %>		            		
+			                <i style="font-size:50px" class="bi bi-person-circle me-3 align-self-center"></i>
+		            	<%}else{ %>
+		            		<img class="rounded-circle me-3 align-self-center" 
+			                	src="${pageContext.request.contextPath }/upload/<%=tmp.getProfileImage() %>" 
+			                	alt="프로필 이미지"
+			                	style="width:50px;height:50px">		                
+		            	<%} %>		                  	
+		                <div class="flex-grow-1">
+		                    <div class="d-flex justify-content-between">
+		                        <div>
+		                            <strong><%=tmp.getWriter() %></strong>
+		                            <span>@<%=tmp.getTargetWriter() %></span>
+		                        </div>
+		                        <small><%=tmp.getCreatedAt() %></small>
+		                    </div>
+		                    <pre><%=tmp.getContent() %></pre>
+		                    <%if(tmp.getWriter().equals(userName)){ %>
+		                    	
+		                    <%}else{ %> <!-- 본인이 작성한 댓글에는 대댓글 버튼을 없앰 -->
+		                    	<button class="btn btn-sm btn-outline-primary show-reply-btn">댓글</button>  
+			                    <!-- 댓글 입력 폼 (처음에는 숨김) -->
+			                    <div class="d-none form-div">
+			                        <form action="comment-save.jsp" method="post">
+			                            <textarea class="form-control mb-2" rows="2" 
+			                                placeholder="댓글을 입력하세요..."></textarea>
+			                            <button type="submit" class="btn btn-sm btn-success">등록</button>
+			                            <button type="reset" class="btn btn-sm btn-secondary cancel-reply-btn">취소</button>
+			                        </form>
+			                    </div>
+		                    <%} %>
+		                    
+		                </div>
+		            </div>
+		        </div>
+			<%} %>
+		</div>	
 	</div><!-- .container -->
+	<script>
+		//클라이언트가 로그인 했는지 여부
+		const isLogin = <%=isLogin%>;
+		
+		document.querySelector("#commentContent").addEventListener("input", ()=>{
+			//원글의 댓글 입력란에 입력했을 때 만일 로그인 하지 않았다면
+			if(!isLogin){
+				alert("댓글 작성을 위해 로그인이 필요합니다!");
+				location.href="${pageContext.request.contextPath }/user/loginform.jsp?url=${pageContext.request.contextPath }/board/view.jsp?num=<%=num%>";
+			}
+		});
+			
+        //모든 댓글 버튼에 이벤트 등록
+        document.querySelectorAll(".show-reply-btn").forEach(item=>{
+            // 매개변수에 전달된 item 은 댓글 button 의 참조값이다 
+            item.addEventListener("click", ()=>{
+            	//댓글 버튼을 눌렀을 때 만일 로그인 하지 않았다면
+    			if(!isLogin){
+    				alert("댓글 작성을 위해 로그인이 필요합니다!");
+    				location.href="${pageContext.request.contextPath }/user/loginform.jsp?url=${pageContext.request.contextPath }/board/view.jsp?num=<%=num%>";
+    				return;
+    			}
+            	
+                //클릭한 버튼의 다음 형제요소의 class 목록에서 d-none 을 제거 
+                item.nextElementSibling.classList.remove("d-none");
+                //클릭한 버튼의 class 목록에 d-none 을 추가
+                item.classList.add("d-none");
+            });
+        });
+
+        document.querySelectorAll(".cancel-reply-btn").forEach(item=>{
+            item.addEventListener("click", ()=>{
+                //가장 가까운 부모 요소중에 클래스 속성이 form-div 인요소  
+                const formDiv=item.closest(".form-div");
+                //formDiv 에 d-none 클래스 추가해서 안보이게 하고
+                formDiv.classList.add("d-none");
+                //formDiv 의 이전 형제요소(댓글버튼)에 d-none 클래스 제거해서 보이게 한다  
+                formDiv.previousElementSibling.classList.remove("d-none");
+            });
+        });
+    </script>
 </body>
 </html>
 
