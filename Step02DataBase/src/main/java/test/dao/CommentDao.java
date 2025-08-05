@@ -100,58 +100,70 @@ public class CommentDao {
 	}
 	
 	//원글(parentNum) 에 달린 모든 댓글을 리턴하는 메소드
-		public List<CommentDto> selectList(int parentNum){
-			List<CommentDto> list=new ArrayList<>();
-			//필요한 객체를 담을 지역변수를 미리 만든다 
-			Connection conn = null;
-			PreparedStatement pstmt = null;
-			ResultSet rs = null;
+	public List<CommentDto> selectList(int parentNum){
+		List<CommentDto> list=new ArrayList<>();
+		//필요한 객체를 담을 지역변수를 미리 만든다 
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		try {
+			conn = new DbcpBean().getConn();
+			//실행할 sql문
+			String sql = """
+					SELECT c.num, c.writer, c.targetWriter, c.content, c.deleted, c.groupNum,
+						u.profileImage,
+						CASE
+							WHEN SYSDATE - c.createdAt < 1/1440 THEN '1분 전'
+							WHEN SYSDATE - c.createdAt < 10/1440 THEN '10분 전'
+							WHEN SYSDATE - c.createdAt < 365 THEN
+								TO_CHAR(TRUNC(SYSDATE - c.createdAt)) || '일 전'
+							WHEN SYSDATE - c.createdAt < 730 THEN '1년 전'
+						ELSE '2년 이상'
+						END AS createdAt,
+						(SELECT COUNT(*) 
+							FROM comments
+							WHERE groupNum = c.num AND num != groupNum ) AS replyCount
+					FROM comments c
+					INNER JOIN users u ON c.writer = u.userName
+					WHERE c.parentNum=?
+					ORDER BY c.groupNum ASC, c.num ASC
+					""";
+			pstmt = conn.prepareStatement(sql);
+			//? 에 값 바인딩
+			pstmt.setInt(1, parentNum);
+			// select 문 실행하고 결과를 ResultSet 으로 받아온다
+			rs = pstmt.executeQuery();
+			//반복문 돌면서 ResultSet 에 담긴 데이터를 추출해서 리턴해줄 객체에 담는다
+			while (rs.next()) {
+				CommentDto dto=new CommentDto();
+				dto.setNum(rs.getInt("num"));
+				dto.setWriter(rs.getString("writer"));
+				dto.setTargetWriter(rs.getString("targetWriter"));
+				dto.setContent(rs.getString("content"));
+				dto.setParentNum(parentNum);
+				dto.setGroupNum(rs.getInt("groupNum"));
+				dto.setDeleted(rs.getString("deleted"));
+				dto.setCreatedAt(rs.getString("createdAt"));
+				dto.setProfileImage(rs.getString("profileImage"));
+				dto.setReplyCount(rs.getInt("replyCount")); //대댓글의 개수
+				
+				list.add(dto);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
 			try {
-				conn = new DbcpBean().getConn();
-				//실행할 sql문
-				String sql = """
-						SELECT comments.num, writer, targetWriter, content, deleted, groupNum,
-							comments.createdAt, profileImage
-						FROM comments
-						INNER JOIN users ON comments.writer = users.userName
-						WHERE parentNum=?
-						ORDER BY groupNum ASC, num ASC
-						""";
-				pstmt = conn.prepareStatement(sql);
-				//? 에 값 바인딩
-				pstmt.setInt(1, parentNum);
-				// select 문 실행하고 결과를 ResultSet 으로 받아온다
-				rs = pstmt.executeQuery();
-				//반복문 돌면서 ResultSet 에 담긴 데이터를 추출해서 리턴해줄 객체에 담는다
-				while (rs.next()) {
-					CommentDto dto=new CommentDto();
-					dto.setNum(rs.getInt("num"));
-					dto.setWriter(rs.getString("writer"));
-					dto.setTargetWriter(rs.getString("targetWriter"));
-					dto.setContent(rs.getString("content"));
-					dto.setParentNum(parentNum);
-					dto.setGroupNum(rs.getInt("groupNum"));
-					dto.setDeleted(rs.getString("deleted"));
-					dto.setCreatedAt(rs.getString("createdAt"));
-					dto.setProfileImage(rs.getString("profileImage"));
-					
-					list.add(dto);
-				}
+				if (rs != null)
+					rs.close();
+				if (pstmt != null)
+					pstmt.close();
+				if (conn != null)
+					conn.close();
 			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				try {
-					if (rs != null)
-						rs.close();
-					if (pstmt != null)
-						pstmt.close();
-					if (conn != null)
-						conn.close();
-				} catch (Exception e) {
-				}
-			}		
-			return list;
-		}
+			}
+		}		
+		return list;
+	}
 	
 	//댓글 정보를 DB 에 저장하는 메소드
 	public boolean insert(CommentDto dto) {

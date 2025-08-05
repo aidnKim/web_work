@@ -46,6 +46,7 @@
 			<!-- 본문 -->
 			<div class="card-body">
 				<h5 class="card-title"><%=dto.getTitle() %></h5>
+				<%-- textarea 로 입력한 글에서 개행기호는 br 요소로 변경해서 출력하기 --%>
 				<p class="card-text"><%=dto.getContent().replaceAll("\n","<br>") %></p>
 				<div class="row">
 					<%for(GalleryImageDto tmp : images){ %>
@@ -86,6 +87,7 @@
 				 		<div class="card-body bg-light text-muted rounded">삭제된 댓글 입니다</div>
 				 	<%}else{ %>
 				 		<div class="card-body d-flex flex-column flex-sm-row position-relative">
+
 			            	<%if(tmp.getNum() != tmp.getGroupNum()){ %>
 			            		<i class="bi bi-arrow-return-right position-absolute" style="top:0;left:-30px"></i>
 			            	<%} %>
